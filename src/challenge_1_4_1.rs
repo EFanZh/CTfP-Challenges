@@ -1,4 +1,4 @@
-pub fn identity<T>(input: T) -> T {
+pub fn id<T>(input: T) -> T {
     input
 }
 
@@ -6,7 +6,7 @@ pub fn identity<T>(input: T) -> T {
 mod tests {
     #[test]
     fn test_identity() {
-        assert_eq!(super::identity(2), 2);
-        assert_eq!(super::identity("foo"), "foo");
+        assert_eq!(super::id(2), 2);
+        assert_eq!(super::id("foo"), "foo");
     }
 }
