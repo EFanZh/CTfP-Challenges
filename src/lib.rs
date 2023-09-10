@@ -7,3 +7,4 @@ pub mod challenge_4_4;
 pub mod challenge_4_4_1;
 pub mod challenge_4_4_2;
 pub mod challenge_4_4_3;
+pub mod scratch;
