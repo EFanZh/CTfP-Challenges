@@ -1,5 +1,6 @@
 use crate::challenge_5_8_4::Either;
 use fn_traits::FnOnce;
+use std::convert::Infallible;
 
 pub trait Semigroup {
     fn multiply(self, rhs: Self) -> Self;
@@ -78,6 +79,26 @@ impl<A, B> Product<A, B> for (A, B) {
         T: Clone,
     {
         TupleFactorizer { f, g }
+    }
+}
+
+pub trait Initial {
+    fn into<T>(self) -> T;
+}
+
+impl Initial for Infallible {
+    fn into<T>(self) -> T {
+        match self {}
+    }
+}
+
+pub trait Terminal {
+    fn from<T>(value: T) -> Self;
+}
+
+impl Terminal for () {
+    fn from<T>(value: T) -> Self {
+        drop(value);
     }
 }
 
