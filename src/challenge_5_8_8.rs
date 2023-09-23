@@ -31,6 +31,7 @@ pub fn m2(x: (bool, i32)) -> Either<i32, bool> {
         Either::Left(x.1)
     }
 }
+
 #[cfg(test)]
 mod tests {
     use crate::challenge_5_8_4;
