@@ -18,17 +18,16 @@ pub fn product_to_sum<T>(value: (bool, T)) -> Either<T, T> {
 #[cfg(test)]
 mod tests {
     use crate::challenge_5_8_4::Either;
-    use crate::challenge_6_5_5::{product_to_sum, sum_to_product};
     use fn_traits::{fns, Fn};
 
     #[test]
     fn test_isomorphism() {
-        let id_sum = fns::compose(sum_to_product, product_to_sum);
+        let id_sum = fns::compose(super::sum_to_product, super::product_to_sum);
 
         assert!(matches!(id_sum.call((Either::Left(2),)), Either::Left(2)));
         assert!(matches!(id_sum.call((Either::Right(3),)), Either::Right(3)));
 
-        let id_product = fns::compose(product_to_sum, sum_to_product);
+        let id_product = fns::compose(super::product_to_sum, super::sum_to_product);
 
         assert_eq!(id_product.call(((false, 2),)), (false, 2));
         assert_eq!(id_product.call(((true, 3),)), (true, 3));
