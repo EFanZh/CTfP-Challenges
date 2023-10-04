@@ -49,12 +49,12 @@ mod tests {
     use fn_traits::{fns, FnMut, FnOnce};
     use std::convert;
 
-    fn fmap<F, R, T, U>(f: F) -> impl FnOnce<(R,), Output = impl Reader<T, F::Output>>
+    fn fmap<F, R, U, T>(f: F) -> impl FnOnce<(R,), Output = R::FMap<F>>
     where
         F: FnMut<(U,)>,
         R: Reader<T, U>,
     {
-        move |reader| Reader::fmap(reader, f)
+        move |reader: R| reader.fmap(f)
     }
 
     #[test]
@@ -65,6 +65,7 @@ mod tests {
 
         assert_eq!(reader.fmap(convert::identity).call_mut((2,)), 3);
         assert_eq!(reader(2), 3);
+
         assert_eq!(reader.fmap(convert::identity).call_mut((3,)), 4);
         assert_eq!(reader(3), 4);
 
