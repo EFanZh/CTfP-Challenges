@@ -1,4 +1,5 @@
 pub mod coproduct;
+pub mod functor;
 pub mod initial;
 pub mod monoid;
 pub mod product;
