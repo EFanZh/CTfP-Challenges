@@ -18,4 +18,5 @@ pub mod challenge_6_5_5;
 pub mod challenge_7_4_3;
 pub mod challenge_8_9_1;
 pub mod challenge_8_9_2;
+pub mod challenge_8_9_3;
 pub mod concepts;
