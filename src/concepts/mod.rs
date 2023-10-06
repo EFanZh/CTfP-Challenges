@@ -1,4 +1,5 @@
 pub mod bifunctor;
+pub mod contravariant;
 pub mod coproduct;
 pub mod functor;
 pub mod initial;
