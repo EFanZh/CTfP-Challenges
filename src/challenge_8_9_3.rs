@@ -26,7 +26,7 @@ impl<T, U> Bifunctor<T, U> for PreList<T, U> {
 
 #[cfg(test)]
 mod tests {
-    use crate::challenge_8_9_3::PreList;
+    use super::PreList;
     use crate::concepts::bifunctor::Bifunctor;
     use fn_traits::{fns, Fn};
     use std::convert;
