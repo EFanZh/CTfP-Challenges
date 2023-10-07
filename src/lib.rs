@@ -21,4 +21,5 @@ pub mod challenge_8_9_2;
 pub mod challenge_8_9_3;
 pub mod challenge_8_9_4;
 pub mod challenge_8_9_5;
+pub mod challenge_8_9_6;
 pub mod concepts;
