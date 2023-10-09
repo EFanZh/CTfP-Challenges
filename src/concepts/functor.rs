@@ -9,7 +9,7 @@ pub trait Functor<C, T>: Sized {
     where
         F: FnMut<(T,)>;
 
-    fn fmap<F>(self, f: F) -> Self::FMap<F>
+    fn fmap<F>(f: F) -> Self::FMap<F>
     where
         F: FnMut<(T,)>;
 }
@@ -40,7 +40,7 @@ impl<T> Functor<OptionFunctor, T> for Option<T> {
     where
         F: FnMut<(T,)>;
 
-    fn fmap<F>(self, f: F) -> Self::FMap<F>
+    fn fmap<F>(f: F) -> Self::FMap<F>
     where
         F: FnMut<(T,)>,
     {
@@ -77,7 +77,7 @@ impl<T> Functor<VecFunctor, T> for Vec<T> {
     where
         F: FnMut<(T,)>;
 
-    fn fmap<F>(self, f: F) -> Self::FMap<F>
+    fn fmap<F>(f: F) -> Self::FMap<F>
     where
         F: FnMut<(T,)>,
     {
