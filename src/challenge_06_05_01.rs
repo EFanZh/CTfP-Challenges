@@ -1,4 +1,4 @@
-use crate::challenge_5_8_4::Either;
+use crate::challenge_05_08_04::Either;
 
 pub fn option_to_either<T>(value: Option<T>) -> Either<(), T> {
     match value {
@@ -16,7 +16,7 @@ pub fn either_to_option<T>(value: Either<(), T>) -> Option<T> {
 
 #[cfg(test)]
 mod tests {
-    use crate::challenge_5_8_4::Either;
+    use crate::challenge_05_08_04::Either;
     use fn_traits::{fns, FnOnce};
 
     #[test]

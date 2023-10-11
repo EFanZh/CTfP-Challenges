@@ -1,4 +1,4 @@
-use crate::challenge_5_8_4::Either;
+use crate::challenge_05_08_04::Either;
 use fn_traits::FnOnce;
 
 pub trait Coproduct<A, B> {

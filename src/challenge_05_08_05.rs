@@ -1,4 +1,4 @@
-use crate::challenge_5_8_4::Either;
+use crate::challenge_05_08_04::Either;
 
 pub fn i(n: i32) -> i32 {
     n
@@ -21,11 +21,11 @@ pub fn m(e: Either<i32, bool>) -> i32 {
 
 #[cfg(test)]
 mod tests {
-    use crate::challenge_5_8_4;
+    use crate::challenge_05_08_04;
 
     #[test]
     fn test_m() {
-        type Either = challenge_5_8_4::Either<i32, bool>;
+        type Either = challenge_05_08_04::Either<i32, bool>;
 
         assert_eq!(super::i(2), super::m(Either::Left(2)));
         assert_eq!(super::i(3), super::m(Either::Left(3)));

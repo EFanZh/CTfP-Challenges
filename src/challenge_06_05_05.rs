@@ -1,4 +1,4 @@
-use crate::challenge_5_8_4::Either;
+use crate::challenge_05_08_04::Either;
 
 pub fn sum_to_product<T>(value: Either<T, T>) -> (bool, T) {
     match value {
@@ -17,7 +17,7 @@ pub fn product_to_sum<T>(value: (bool, T)) -> Either<T, T> {
 
 #[cfg(test)]
 mod tests {
-    use crate::challenge_5_8_4::Either;
+    use crate::challenge_05_08_04::Either;
     use fn_traits::{fns, Fn};
 
     #[test]

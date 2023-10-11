@@ -1,8 +1,12 @@
-use crate::{challenge_4_4, challenge_4_4_1, challenge_4_4_2};
+use crate::{challenge_04_04, challenge_04_04_01, challenge_04_04_02};
 use fn_traits::Fn;
 
 pub fn safe_root_reciprocal(x: f64) -> Option<f64> {
-    challenge_4_4_1::compose(challenge_4_4::safe_root, challenge_4_4_2::safe_reciprocal).call((x,))
+    challenge_04_04_01::compose(
+        challenge_04_04::safe_root,
+        challenge_04_04_02::safe_reciprocal,
+    )
+    .call((x,))
 }
 
 #[cfg(test)]

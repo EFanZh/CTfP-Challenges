@@ -1,4 +1,4 @@
-use crate::challenge_5_8_4::Either;
+use crate::challenge_05_08_04::Either;
 use std::marker::PhantomData;
 
 pub struct Const<T, U>(pub T, pub PhantomData<U>);
@@ -21,7 +21,7 @@ pub fn either_to_option<T>(value: Either<Const<(), T>, Identity<T>>) -> Option<T
 #[cfg(test)]
 mod tests {
     use super::{Const, Identity};
-    use crate::challenge_5_8_4::Either;
+    use crate::challenge_05_08_04::Either;
     use fn_traits::{fns, Fn};
     use std::marker::PhantomData;
 
