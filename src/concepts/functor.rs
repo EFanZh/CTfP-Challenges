@@ -1,11 +1,11 @@
-use fn_traits::FnMut;
+use fn_traits::{FnMut, FnOnce};
 
 pub trait Functor<C, T>: Sized {
     type FMapOutput<F>: Functor<C, F::Output>
     where
         F: FnMut<(T,)>;
 
-    type FMap<F>: FnMut<(Self,), Output = Self::FMapOutput<F>>
+    type FMap<F>: FnOnce<(Self,), Output = Self::FMapOutput<F>>
     where
         F: FnMut<(T,)>;
 
@@ -20,13 +20,13 @@ pub struct OptionFMap<F> {
     f: F,
 }
 
-impl<T, F> FnMut<(Option<T>,)> for OptionFMap<F>
+impl<T, F> FnOnce<(Option<T>,)> for OptionFMap<F>
 where
     F: FnMut<(T,)>,
 {
     type Output = Option<F::Output>;
 
-    fn call_mut(&mut self, args: (Option<T>,)) -> Self::Output {
+    fn call_once(mut self, args: (Option<T>,)) -> Self::Output {
         args.0.map(|value| self.f.call_mut((value,)))
     }
 }
@@ -54,13 +54,13 @@ pub struct VecFMap<F> {
     f: F,
 }
 
-impl<T, F> FnMut<(Vec<T>,)> for VecFMap<F>
+impl<T, F> FnOnce<(Vec<T>,)> for VecFMap<F>
 where
     F: FnMut<(T,)>,
 {
     type Output = Vec<F::Output>;
 
-    fn call_mut(&mut self, args: (Vec<T>,)) -> Self::Output {
+    fn call_once(mut self, args: (Vec<T>,)) -> Self::Output {
         args.0
             .into_iter()
             .map(|value| self.f.call_mut((value,)))

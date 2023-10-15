@@ -1,5 +1,5 @@
 use crate::concepts::functor::Functor;
-use fn_traits::FnMut;
+use fn_traits::{FnMut, FnOnce};
 
 pub enum List<T> {
     Nil,
@@ -12,17 +12,17 @@ pub struct ListFMap<F> {
     f: F,
 }
 
-impl<T, F> FnMut<(List<T>,)> for ListFMap<F>
+impl<T, F> FnOnce<(List<T>,)> for ListFMap<F>
 where
     F: FnMut<(T,)>,
 {
     type Output = List<F::Output>;
 
-    fn call_mut(&mut self, args: (List<T>,)) -> Self::Output {
+    fn call_once(mut self, args: (List<T>,)) -> Self::Output {
         match args.0 {
             List::Nil => List::Nil,
             List::Cons(head, tail) => {
-                List::Cons(self.f.call_mut((head,)), Box::new(self.call_mut((*tail,))))
+                List::Cons(self.f.call_mut((head,)), Box::new(self.call_once((*tail,))))
             }
         }
     }
@@ -56,17 +56,17 @@ pub fn option_to_list<T>(value: Option<T>) -> List<T> {
 mod tests {
     use super::List;
     use crate::concepts::functor::Functor;
-    use fn_traits::{fns, FnMut};
+    use fn_traits::{fns, FnOnce};
 
     #[test]
     fn test_naturality() {
         let f = |x| x + 2;
 
         let fmap_then_transform =
-            |x| fns::compose(Option::fmap(f), super::option_to_list).call_mut((x,));
+            |x| fns::compose(Option::fmap(f), super::option_to_list).call_once((x,));
 
         let transform_then_fmap =
-            |x| fns::compose(super::option_to_list, List::fmap(f)).call_mut((x,));
+            |x| fns::compose(super::option_to_list, List::fmap(f)).call_once((x,));
 
         assert!(matches!(fmap_then_transform(None), List::Nil));
         assert!(matches!(transform_then_fmap(None), List::Nil));
