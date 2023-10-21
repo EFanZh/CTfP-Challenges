@@ -11,12 +11,12 @@ pub trait Contravariant<C, T>: Sized {
     where
         F: FnMut<(U,), Output = T>;
 
-    fn contra_map<F, U>(self, f: F) -> Self::ContraMap<U, F>
+    fn contra_map<F, U>(f: F) -> Self::ContraMap<U, F>
     where
         F: FnMut<(U,), Output = T>;
 }
 
-pub struct OpFunctor;
+pub struct OpContravariant;
 
 pub struct OpContraMap<F, T> {
     f: F,
@@ -35,7 +35,7 @@ where
     }
 }
 
-impl<T, W> Contravariant<OpFunctor, T> for W
+impl<T, W> Contravariant<OpContravariant, T> for W
 where
     W: FnMut<(T,)>,
 {
@@ -47,7 +47,7 @@ where
     where
         F: FnMut<(U,), Output = T>;
 
-    fn contra_map<F, U>(self, f: F) -> Self::ContraMap<U, F>
+    fn contra_map<F, U>(f: F) -> Self::ContraMap<U, F>
     where
         F: FnMut<(U,), Output = T>,
     {

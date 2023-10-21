@@ -10,7 +10,6 @@ pub fn reader_to_option_2<T>(mut reader: impl Reader<(), T>) -> Option<T> {
 
 #[cfg(test)]
 mod tests {
-
     #[test]
     fn test_reader_to_option_1() {
         assert_eq!(super::reader_to_option_1(|()| 0), None);
