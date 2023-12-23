@@ -1,11 +1,11 @@
 use crate::concepts::semigroup::Semigroup;
 
 pub trait Monoid: Semigroup {
-    fn unit() -> Self;
+    fn empty() -> Self;
 }
 
 impl Monoid for String {
-    fn unit() -> Self {
+    fn empty() -> Self {
         Self::new()
     }
 }
