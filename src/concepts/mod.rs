@@ -6,5 +6,6 @@ pub mod initial;
 pub mod monoid;
 pub mod product;
 pub mod profunctor;
+pub mod representable;
 pub mod semigroup;
 pub mod terminal;
