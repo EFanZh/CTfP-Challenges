@@ -79,9 +79,26 @@ impl Representable for StreamFunctor {
     where
         F: FnMut<(Self::Rep,)> + 'a,
     {
+        fn make_rest<'a, F>(
+            mut index: usize,
+            mut f: F,
+        ) -> Box<dyn FnOnce() -> Stream<'a, F::Output> + 'a>
+        where
+            F: FnMut<(usize,)> + 'a,
+        {
+            Box::new(move || {
+                index += 1;
+
+                Stream {
+                    first: f.call_mut((index,)),
+                    rest: make_rest(index, f),
+                }
+            })
+        }
+
         Self::Map {
             first: f.call_mut((0,)),
-            rest: Box::new(|| Self.tabulate(fns::compose(|x| x + 1, f))),
+            rest: make_rest(0, f),
         }
     }
 
@@ -90,5 +107,34 @@ impl Representable for StreamFunctor {
         T: 'a,
     {
         Self::Index { value }
+    }
+}
+
+pub fn square_stream() -> Stream<'static, usize> {
+    StreamFunctor.tabulate(|x| x * x)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Stream;
+
+    #[test]
+    fn test_square_stream() {
+        let mut stream = Some(super::square_stream());
+
+        let mut next = || {
+            let Stream { first, rest } = stream.take().unwrap();
+
+            stream = Some(rest());
+
+            first
+        };
+
+        assert_eq!(next(), 0);
+        assert_eq!(next(), 1);
+        assert_eq!(next(), 4);
+        assert_eq!(next(), 9);
+        assert_eq!(next(), 16);
+        assert_eq!(next(), 25);
     }
 }
