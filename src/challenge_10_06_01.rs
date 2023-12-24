@@ -28,20 +28,18 @@ where
     }
 }
 
-impl<T> Functor<ListFunctor, T> for List<T> {
-    type FMapOutput<F> = List<F::Output>
+impl Functor for ListFunctor {
+    type Map<T> = List<T>;
+
+    type FMap<T, F> = ListFMap<F>
     where
         F: FnMut<(T,)>;
 
-    type FMap<F> = ListFMap<F>
-    where
-        F: FnMut<(T,)>;
-
-    fn fmap<F>(f: F) -> Self::FMap<F>
+    fn fmap<T, F>(&mut self, f: F) -> Self::FMap<T, F>
     where
         F: FnMut<(T,)>,
     {
-        ListFMap { f }
+        Self::FMap { f }
     }
 }
 
@@ -55,7 +53,8 @@ pub fn option_to_list<T>(value: Option<T>) -> List<T> {
 #[cfg(test)]
 mod tests {
     use super::List;
-    use crate::concepts::functor::Functor;
+    use crate::challenge_10_06_01::ListFunctor;
+    use crate::concepts::functor::{Functor, OptionFunctor};
     use fn_traits::{fns, FnOnce};
 
     #[test]
@@ -63,10 +62,10 @@ mod tests {
         let f = |x| x + 2;
 
         let fmap_then_transform =
-            |x| fns::compose(Option::fmap(f), super::option_to_list).call_once((x,));
+            |x| fns::compose(OptionFunctor.fmap(f), super::option_to_list).call_once((x,));
 
         let transform_then_fmap =
-            |x| fns::compose(super::option_to_list, List::fmap(f)).call_once((x,));
+            |x| fns::compose(super::option_to_list, ListFunctor.fmap(f)).call_once((x,));
 
         assert!(matches!(fmap_then_transform(None), List::Nil));
         assert!(matches!(transform_then_fmap(None), List::Nil));

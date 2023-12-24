@@ -7,20 +7,23 @@ pub trait Reader<T, U>: FnMut<(T,), Output = U> {}
 
 impl<T, U, F> Reader<T, U> for F where F: FnMut<(T,), Output = U> {}
 
-pub struct ReaderFunctor<T> {
-    inner: PhantomData<T>,
+pub struct ReaderFunctor<T, R> {
+    _phantom: PhantomData<(T, R)>,
 }
 
-pub struct ReaderFMap<T, F> {
+impl<T, R> Default for ReaderFunctor<T, R> {
+    fn default() -> Self {
+        Self {
+            _phantom: PhantomData,
+        }
+    }
+}
+
+pub struct ReaderFMap<F> {
     f: F,
-    _phantom: PhantomData<T>,
 }
 
-impl<T, R, F> FnOnce<(R,)> for ReaderFMap<T, F>
-where
-    R: FnMut<(T,)>,
-    F: FnMut<(R::Output,)>,
-{
+impl<R, F> FnOnce<(R,)> for ReaderFMap<F> {
     type Output = ComposeFn<R, F>;
 
     fn call_once(self, args: (R,)) -> Self::Output {
@@ -28,26 +31,21 @@ where
     }
 }
 
-impl<T, U, R> Functor<ReaderFunctor<T>, U> for R
+impl<U, R> Functor for ReaderFunctor<U, R>
 where
-    R: FnMut<(T,), Output = U>,
+    R: FnMut<(U,)>,
 {
-    type FMapOutput<F> = ComposeFn<R, F>
-    where
-        F: FnMut<(U,)>;
+    type Map<T> = R;
 
-    type FMap<F> = ReaderFMap<T, F>
+    type FMap<T, F> = ReaderFMap<F>
     where
-        F: FnMut<(U,)>;
+        F: FnMut<(T,)>;
 
-    fn fmap<F>(f: F) -> Self::FMap<F>
+    fn fmap<T, F>(&mut self, f: F) -> Self::FMap<T, F>
     where
-        F: FnMut<(U,)>,
+        F: FnMut<(T,)>,
     {
-        ReaderFMap {
-            f,
-            _phantom: PhantomData,
-        }
+        Self::FMap { f }
     }
 }
 
@@ -55,17 +53,16 @@ where
 mod tests {
     use super::{Reader, ReaderFunctor};
     use crate::concepts::functor::Functor;
+    use fn_traits::fns::ComposeFn;
     use fn_traits::{fns, FnMut, FnOnce};
     use std::convert;
 
-    fn fmap<F, R, T, U>(
-        f: F,
-    ) -> impl FnOnce<(R,), Output = <R as Functor<ReaderFunctor<T>, U>>::FMapOutput<F>>
+    fn fmap<F, R, T, U>(f: F) -> impl FnOnce<(R,), Output = ComposeFn<R, F>>
     where
         R: Reader<T, U>,
         F: FnMut<(U,)>,
     {
-        R::fmap(f)
+        ReaderFunctor::<T, R>::default().fmap(f)
     }
 
     #[test]

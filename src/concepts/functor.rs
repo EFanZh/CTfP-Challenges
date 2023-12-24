@@ -1,20 +1,16 @@
 use fn_traits::{FnMut, FnOnce};
 
-pub trait Functor<C, T>: Sized {
-    type FMapOutput<F>: Functor<C, F::Output>
+pub trait Functor {
+    type Map<T>;
+
+    type FMap<T, F>: FnOnce<(Self::Map<T>,)>
     where
         F: FnMut<(T,)>;
 
-    type FMap<F>: FnOnce<(Self,), Output = Self::FMapOutput<F>>
-    where
-        F: FnMut<(T,)>;
-
-    fn fmap<F>(f: F) -> Self::FMap<F>
+    fn fmap<T, F>(&mut self, f: F) -> Self::FMap<T, F>
     where
         F: FnMut<(T,)>;
 }
-
-pub struct OptionFunctor;
 
 pub struct OptionFMap<F> {
     f: F,
@@ -31,16 +27,16 @@ where
     }
 }
 
-impl<T> Functor<OptionFunctor, T> for Option<T> {
-    type FMapOutput<F> = Option<F::Output>
+pub struct OptionFunctor;
+
+impl Functor for OptionFunctor {
+    type Map<T> = Option<T>;
+
+    type FMap<T, F> = OptionFMap<F>
     where
         F: FnMut<(T,)>;
 
-    type FMap<F> = OptionFMap<F>
-    where
-        F: FnMut<(T,)>;
-
-    fn fmap<F>(f: F) -> Self::FMap<F>
+    fn fmap<T, F>(&mut self, f: F) -> Self::FMap<T, F>
     where
         F: FnMut<(T,)>,
     {
@@ -68,19 +64,17 @@ where
     }
 }
 
-impl<T> Functor<VecFunctor, T> for Vec<T> {
-    type FMapOutput<F> = Vec<F::Output>
+impl Functor for VecFunctor {
+    type Map<T> = Vec<T>;
+
+    type FMap<T, F> = VecFMap<F>
     where
         F: FnMut<(T,)>;
 
-    type FMap<F> = VecFMap<F>
-    where
-        F: FnMut<(T,)>;
-
-    fn fmap<F>(f: F) -> Self::FMap<F>
+    fn fmap<T, F>(&mut self, f: F) -> Self::FMap<T, F>
     where
         F: FnMut<(T,)>,
     {
-        VecFMap { f }
+        Self::FMap { f }
     }
 }
