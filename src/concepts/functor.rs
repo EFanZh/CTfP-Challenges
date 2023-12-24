@@ -1,15 +1,18 @@
 use fn_traits::{FnMut, FnOnce};
 
 pub trait Functor {
-    type Map<T>;
-
-    type FMap<T, F>: FnOnce<(Self::Map<T>,)>
+    type Map<'a, T>
     where
-        F: FnMut<(T,)>;
+        T: 'a;
 
-    fn fmap<T, F>(&mut self, f: F) -> Self::FMap<T, F>
+    type FMap<'a, T, F>: FnOnce<(Self::Map<'a, T>,)>
     where
-        F: FnMut<(T,)>;
+        T: 'a,
+        F: FnMut<(T,)> + 'a;
+
+    fn fmap<'a, T, F>(&mut self, f: F) -> Self::FMap<'a, T, F>
+    where
+        F: FnMut<(T,)> + 'a;
 }
 
 pub struct OptionFMap<F> {
@@ -30,15 +33,19 @@ where
 pub struct OptionFunctor;
 
 impl Functor for OptionFunctor {
-    type Map<T> = Option<T>;
-
-    type FMap<T, F> = OptionFMap<F>
+    type Map<'a, T> = Option<T>
     where
-        F: FnMut<(T,)>;
+        T: 'a;
 
-    fn fmap<T, F>(&mut self, f: F) -> Self::FMap<T, F>
+    type FMap<'a, T, F> = OptionFMap<F>
     where
-        F: FnMut<(T,)>,
+        T: 'a,
+        F: FnMut<(T,)> + 'a;
+
+    fn fmap<'a, T, F>(&mut self, f: F) -> Self::FMap<'a, T, F>
+    where
+        T: 'a,
+        F: FnMut<(T,)> + 'a,
     {
         OptionFMap { f }
     }
@@ -65,15 +72,19 @@ where
 }
 
 impl Functor for VecFunctor {
-    type Map<T> = Vec<T>;
-
-    type FMap<T, F> = VecFMap<F>
+    type Map<'a, T> = Vec<T>
     where
-        F: FnMut<(T,)>;
+        T: 'a;
 
-    fn fmap<T, F>(&mut self, f: F) -> Self::FMap<T, F>
+    type FMap<'a, T, F> = VecFMap<F>
     where
-        F: FnMut<(T,)>,
+        T: 'a,
+        F: FnMut<(T,)> + 'a;
+
+    fn fmap<'a, T, F>(&mut self, f: F) -> Self::FMap<'a, T, F>
+    where
+        T: 'a,
+        F: FnMut<(T,)> + 'a,
     {
         Self::FMap { f }
     }

@@ -29,15 +29,19 @@ where
 }
 
 impl Functor for ListFunctor {
-    type Map<T> = List<T>;
-
-    type FMap<T, F> = ListFMap<F>
+    type Map<'a, T> = List<T>
     where
-        F: FnMut<(T,)>;
+        T: 'a;
 
-    fn fmap<T, F>(&mut self, f: F) -> Self::FMap<T, F>
+    type FMap<'a, T, F> = ListFMap<F>
     where
-        F: FnMut<(T,)>,
+        T: 'a,
+        F: FnMut<(T,)> + 'a;
+
+    fn fmap<'a, T, F>(&mut self, f: F) -> Self::FMap<'a, T, F>
+    where
+        T: 'a,
+        F: FnMut<(T,)> + 'a,
     {
         Self::FMap { f }
     }
