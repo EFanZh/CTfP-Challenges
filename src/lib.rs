@@ -27,4 +27,5 @@ pub mod challenge_10_06_02;
 pub mod challenge_10_06_03;
 pub mod challenge_10_06_06;
 pub mod challenge_14_03_04;
+pub mod challenge_14_03_06;
 pub mod concepts;
