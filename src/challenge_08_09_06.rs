@@ -31,7 +31,9 @@ where
     }
 }
 
-impl<K, V, KF> Profunctor<K, V> for FunctorialHashMap<K, V, KF>
+pub struct FunctorialHashMapProfunctor;
+
+impl<K, V, KF> Profunctor<FunctorialHashMapProfunctor, K, V> for FunctorialHashMap<K, V, KF>
 where
     KF: FnMut<(K,)>,
     KF::Output: Eq + Hash,

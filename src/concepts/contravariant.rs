@@ -1,59 +1,35 @@
 use fn_traits::fns::ComposeFn;
-use fn_traits::{fns, FnMut, FnOnce};
+use fn_traits::{fns, FnMut};
 use std::marker::PhantomData;
 
-pub trait Contravariant<C, T>: Sized {
-    type ContraMapOutput<U, F>: Contravariant<C, U>
+pub trait Contravariant<I, T> {
+    type ContraMap<U, F>: Contravariant<I, U>
     where
         F: FnMut<(U,), Output = T>;
 
-    type ContraMap<U, F>: FnOnce<(Self,), Output = Self::ContraMapOutput<U, F>>
-    where
-        F: FnMut<(U,), Output = T>;
-
-    fn contra_map<F, U>(f: F) -> Self::ContraMap<U, F>
+    fn contra_map<U, F>(self, f: F) -> Self::ContraMap<U, F>
     where
         F: FnMut<(U,), Output = T>;
 }
 
-pub struct OpContravariant;
+// Op.
 
-pub struct OpContraMap<F, T> {
-    f: F,
-    _phantom: PhantomData<T>,
+pub struct OpContravariant<A> {
+    _phantom: PhantomData<A>,
 }
 
-impl<W, F, T> FnOnce<(W,)> for OpContraMap<F, T>
+impl<A, T, W> Contravariant<OpContravariant<A>, T> for W
 where
-    W: FnMut<(F::Output,)>,
-    F: FnMut<(T,)>,
+    W: FnMut<(T,), Output = A>,
 {
-    type Output = ComposeFn<F, W>;
-
-    fn call_once(self, args: (W,)) -> Self::Output {
-        fns::compose(self.f, args.0)
-    }
-}
-
-impl<T, W> Contravariant<OpContravariant, T> for W
-where
-    W: FnMut<(T,)>,
-{
-    type ContraMapOutput<U, F> = ComposeFn<F, Self>
+    type ContraMap<U, F> = ComposeFn<F, Self>
     where
         F: FnMut<(U,), Output = T>;
 
-    type ContraMap<U, F> = OpContraMap<F, U>
-    where
-        F: FnMut<(U,), Output = T>;
-
-    fn contra_map<F, U>(f: F) -> Self::ContraMap<U, F>
+    fn contra_map<U, F>(self, f: F) -> Self::ContraMap<U, F>
     where
         F: FnMut<(U,), Output = T>,
     {
-        OpContraMap {
-            f,
-            _phantom: PhantomData,
-        }
+        fns::compose(f, self)
     }
 }

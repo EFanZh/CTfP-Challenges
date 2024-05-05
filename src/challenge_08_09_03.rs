@@ -31,22 +31,20 @@ where
 }
 
 impl<T, U> Bifunctor<PreListBifunctor, T, U> for PreList<T, U> {
-    type BiMapOutput<F, G> = PreList<F::Output, G::Output>
+    type BiMap<F, G> = PreList<F::Output, G::Output>
     where
         F: FnMut<(T,)>,
         G: FnMut<(U,)>;
 
-    type BiMap<F, G> = PreListBiMap<F, G>
-    where
-        F: FnMut<(T,)>,
-        G: FnMut<(U,)>;
-
-    fn bimap<F, G>(f: F, g: G) -> Self::BiMap<F, G>
+    fn bimap<F, G>(self, mut f: F, mut g: G) -> Self::BiMap<F, G>
     where
         F: FnMut<(T,)>,
         G: FnMut<(U,)>,
     {
-        PreListBiMap { f, g }
+        match self {
+            PreList::Nil => PreList::Nil,
+            PreList::Cons(x, y) => PreList::Cons(f.call_mut((x,)), g.call_mut((y,))),
+        }
     }
 }
 
@@ -65,10 +63,15 @@ mod tests {
         let g_2 = |x: u128| x * 7;
 
         let compose_then_map =
-            |x| PreList::bimap(fns::compose(f_1, f_2), fns::compose(g_1, g_2)).call_mut((x,));
+            |x| PreList::bimap(x, fns::compose(f_1, f_2), fns::compose(g_1, g_2));
 
-        let map_then_compose =
-            |x| fns::compose(PreList::bimap(f_1, g_1), PreList::bimap(f_2, g_2)).call_mut((x,));
+        let map_then_compose = |x| {
+            fns::compose(
+                |x| PreList::bimap(x, f_1, g_1),
+                |x| PreList::bimap(x, f_2, g_2),
+            )
+            .call_mut((x,))
+        };
 
         assert!(matches!(compose_then_map(PreList::Nil), PreList::Nil));
         assert!(matches!(map_then_compose(PreList::Nil), PreList::Nil));
@@ -86,7 +89,7 @@ mod tests {
 
     #[test]
     fn test_pre_list_preservation_of_identity() {
-        let id = |x| PreList::bimap(convert::identity, convert::identity).call_mut((x,));
+        let id = |x| PreList::bimap(x, convert::identity, convert::identity);
 
         assert!(matches!(id(PreList::Nil), PreList::Nil));
         assert!(matches!(id(PreList::Cons(2, 3)), PreList::Cons(2, 3)));

@@ -7,13 +7,13 @@ mod tests {
         f: F,
     ) -> impl FnOnce<
         (W,),
-        Output = <W as Contravariant<OpContravariant, F::Output>>::ContraMapOutput<T, F>,
+        Output = <W as Contravariant<OpContravariant<W::Output>, F::Output>>::ContraMap<T, F>,
     >
     where
         F: FnMut<(T,)>,
         W: FnMut<(F::Output,)>,
     {
-        W::contra_map(f)
+        move |x| W::contra_map(x, f)
     }
 
     #[test]

@@ -1,61 +1,12 @@
-use crate::concepts::functor::Functor;
-use fn_traits::fns::ComposeFn;
-use fn_traits::{fns, FnMut, FnOnce};
-use std::marker::PhantomData;
+use fn_traits::FnMut;
 
 pub trait Reader<T, U>: FnMut<(T,), Output = U> {}
 
 impl<T, U, F> Reader<T, U> for F where F: FnMut<(T,), Output = U> {}
 
-pub struct ReaderFunctor<T, R> {
-    _phantom: PhantomData<(T, R)>,
-}
-
-impl<T, R> Default for ReaderFunctor<T, R> {
-    fn default() -> Self {
-        Self {
-            _phantom: PhantomData,
-        }
-    }
-}
-
-pub struct ReaderFMap<F> {
-    f: F,
-}
-
-impl<R, F> FnOnce<(R,)> for ReaderFMap<F> {
-    type Output = ComposeFn<R, F>;
-
-    fn call_once(self, args: (R,)) -> Self::Output {
-        fns::compose(args.0, self.f)
-    }
-}
-
-impl<U, R> Functor for ReaderFunctor<U, R>
-where
-    R: FnMut<(U,)>,
-{
-    type Map<'a, T> = R
-    where
-        T: 'a;
-
-    type FMap<'a, T, F> = ReaderFMap<F>
-    where
-        T: 'a,
-        F: FnMut<(T,)> + 'a;
-
-    fn fmap<'a, T, F>(&mut self, f: F) -> Self::FMap<'a, T, F>
-    where
-        T: 'a,
-        F: FnMut<(T,)> + 'a,
-    {
-        Self::FMap { f }
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use super::{Reader, ReaderFunctor};
+    use super::Reader;
     use crate::concepts::functor::Functor;
     use fn_traits::fns::ComposeFn;
     use fn_traits::{fns, FnMut, FnOnce};
@@ -66,7 +17,7 @@ mod tests {
         R: Reader<T, U>,
         F: FnMut<(U,)>,
     {
-        ReaderFunctor::<T, R>::default().fmap(f)
+        move |x| Functor::map(x, f)
     }
 
     #[test]

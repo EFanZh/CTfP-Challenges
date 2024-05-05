@@ -1,18 +1,15 @@
 use crate::concepts::functor::Functor;
-use fn_traits::{FnMut, FnOnce};
+use fn_traits::FnMut;
 
-pub trait Representable: Functor {
+pub trait Representable<'a, I, T>: Functor<'a, I, T>
+where
+    T: 'a,
+{
     type Rep;
 
-    type Index<'a, T>: FnOnce<(Self::Rep,), Output = T>
+    fn tabulate<F>(f: F) -> Self
     where
-        T: 'a;
+        F: FnMut<(Self::Rep,), Output = T> + 'a;
 
-    fn tabulate<'a, F>(&mut self, f: F) -> Self::Map<'a, F::Output>
-    where
-        F: FnMut<(Self::Rep,)> + 'a;
-
-    fn index<'a, T>(&mut self, value: Self::Map<'a, T>) -> Self::Index<'a, T>
-    where
-        T: 'a;
+    fn index(self, rep: Self::Rep) -> T;
 }

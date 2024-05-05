@@ -1,91 +1,61 @@
-use fn_traits::{FnMut, FnOnce};
+use fn_traits::fns::ComposeFn;
+use fn_traits::{fns, FnMut};
+use std::marker::PhantomData;
 
-pub trait Functor {
-    type Map<'a, T>
-    where
-        T: 'a;
-
-    type FMap<'a, T, F>: FnOnce<(Self::Map<'a, T>,)>
-    where
-        T: 'a,
-        F: FnMut<(T,)> + 'a;
-
-    fn fmap<'a, T, F>(&mut self, f: F) -> Self::FMap<'a, T, F>
-    where
-        F: FnMut<(T,)> + 'a;
-}
-
-pub struct OptionFMap<F> {
-    f: F,
-}
-
-impl<T, F> FnOnce<(Option<T>,)> for OptionFMap<F>
+pub trait Functor<'a, I, T>
 where
-    F: FnMut<(T,)>,
+    T: 'a,
 {
-    type Output = Option<F::Output>;
+    type Map<F>: Functor<'a, I, F::Output>
+    where
+        F: FnMut<(T,)> + 'a;
 
-    fn call_once(mut self, args: (Option<T>,)) -> Self::Output {
-        args.0.map(|value| self.f.call_mut((value,)))
-    }
+    fn map<F>(self, f: F) -> Self::Map<F>
+    where
+        F: FnMut<(T,)> + 'a;
 }
+
+// Option.
 
 pub struct OptionFunctor;
 
-impl Functor for OptionFunctor {
-    type Map<'a, T> = Option<T>
-    where
-        T: 'a;
-
-    type FMap<'a, T, F> = OptionFMap<F>
-    where
-        T: 'a,
-        F: FnMut<(T,)> + 'a;
-
-    fn fmap<'a, T, F>(&mut self, f: F) -> Self::FMap<'a, T, F>
-    where
-        T: 'a,
-        F: FnMut<(T,)> + 'a,
-    {
-        OptionFMap { f }
-    }
-}
-
-pub struct VecFunctor;
-
-pub struct VecFMap<F> {
-    f: F,
-}
-
-impl<T, F> FnOnce<(Vec<T>,)> for VecFMap<F>
+impl<'a, T> Functor<'a, OptionFunctor, T> for Option<T>
 where
-    F: FnMut<(T,)>,
+    T: 'a,
 {
-    type Output = Vec<F::Output>;
-
-    fn call_once(mut self, args: (Vec<T>,)) -> Self::Output {
-        args.0
-            .into_iter()
-            .map(|value| self.f.call_mut((value,)))
-            .collect()
-    }
-}
-
-impl Functor for VecFunctor {
-    type Map<'a, T> = Vec<T>
-    where
-        T: 'a;
-
-    type FMap<'a, T, F> = VecFMap<F>
+    type Map< F> = Option<F::Output>
     where
         T: 'a,
         F: FnMut<(T,)> + 'a;
 
-    fn fmap<'a, T, F>(&mut self, f: F) -> Self::FMap<'a, T, F>
+    fn map<F>(self, mut f: F) -> Self::Map<F>
     where
         T: 'a,
         F: FnMut<(T,)> + 'a,
     {
-        Self::FMap { f }
+        self.map(|value| f.call_mut((value,)))
+    }
+}
+
+// Reader.
+
+pub struct ReaderFunctor<A> {
+    _phantom: PhantomData<A>,
+}
+
+impl<'a, A, U, R> Functor<'a, ReaderFunctor<A>, U> for R
+where
+    U: 'a,
+    R: FnMut<(A,), Output = U>,
+{
+    type Map<F> = ComposeFn<Self, F>
+    where
+        F: FnMut<(U,)> + 'a;
+
+    fn map<F>(self, f: F) -> Self::Map<F>
+    where
+        F: FnMut<(U,)> + 'a,
+    {
+        fns::compose(self, f)
     }
 }

@@ -1,47 +1,21 @@
 use fn_traits::FnOnce;
 
-pub trait Product<A, B> {
-    type Factorizer<T, F, G>: FnOnce<(T,), Output = Self>
-    where
-        F: FnOnce<(T,), Output = A>,
-        G: FnOnce<(T,), Output = B>,
-        T: Clone;
-
+pub trait Product<I, A, B> {
     fn left(self) -> A;
     fn right(self) -> B;
 
-    fn factorizer<T, F, G>(f: F, g: G) -> Self::Factorizer<T, F, G>
+    fn factorize<F, G>(self, f: F, g: G) -> (A, B)
     where
-        F: FnOnce<(T,), Output = A>,
-        G: FnOnce<(T,), Output = B>,
-        T: Clone;
+        F: FnOnce<(Self,), Output = A>,
+        G: FnOnce<(Self,), Output = B>,
+        Self: Clone;
 }
 
-pub struct TupleFactorizer<F, G> {
-    f: F,
-    g: G,
-}
+// Tuple.
 
-impl<T, F, G> FnOnce<(T,)> for TupleFactorizer<F, G>
-where
-    F: FnOnce<(T,)>,
-    G: FnOnce<(T,)>,
-    T: Clone,
-{
-    type Output = (F::Output, G::Output);
+pub struct TupleProduct;
 
-    fn call_once(self, args: (T,)) -> Self::Output {
-        (self.f.call_once(args.clone()), self.g.call_once(args))
-    }
-}
-
-impl<A, B> Product<A, B> for (A, B) {
-    type Factorizer<T, F, G> = TupleFactorizer<F, G>
-    where
-        F: FnOnce<(T,), Output = A>,
-        G: FnOnce<(T,), Output = B>,
-        T: Clone;
-
+impl<A, B> Product<TupleProduct, A, B> for (A, B) {
     fn left(self) -> A {
         self.0
     }
@@ -50,12 +24,12 @@ impl<A, B> Product<A, B> for (A, B) {
         self.1
     }
 
-    fn factorizer<T, F, G>(f: F, g: G) -> Self::Factorizer<T, F, G>
+    fn factorize<F, G>(self, f: F, g: G) -> (A, B)
     where
-        F: FnOnce<(T,), Output = A>,
-        G: FnOnce<(T,), Output = B>,
-        T: Clone,
+        F: FnOnce<(Self,), Output = A>,
+        G: FnOnce<(Self,), Output = B>,
+        Self: Clone,
     {
-        TupleFactorizer { f, g }
+        (f.call_once((self.clone(),)), g.call_once((self,)))
     }
 }

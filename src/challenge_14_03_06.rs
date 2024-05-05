@@ -28,97 +28,66 @@ where
 
 pub struct PairFunctor;
 
-impl Functor for PairFunctor {
-    type Map<'a, T> = Pair< T>
-    where
-        T: 'a;
-
-    type FMap<'a, T, F> = PairFmap< F>
-    where
-        T: 'a,
-        F: FnMut<(T,)> + 'a;
-
-    fn fmap<'a, T, F>(&mut self, f: F) -> Self::FMap<'a, T, F>
-    where
-        T: 'a,
-        F: FnMut<(T,)> + 'a,
-    {
-        Self::FMap { f }
-    }
-}
-
-pub struct PairIndex<T> {
-    value: Pair<T>,
-}
-
-impl<'a, T> fn_traits::FnOnce<(bool,)> for PairIndex<T>
+impl<'a, T> Functor<'a, PairFunctor, T> for Pair<T>
 where
     T: 'a,
 {
-    type Output = T;
+    type Map<F> = Pair<F::Output>
+    where
+        F: FnMut<(T,)> + 'a;
 
-    fn call_once(self, args: (bool,)) -> Self::Output {
-        if args.0 {
-            self.value.right
-        } else {
-            self.value.left
+    fn map<F>(self, mut f: F) -> Self::Map<F>
+    where
+        F: FnMut<(T,)> + 'a,
+    {
+        Pair {
+            left: f.call_mut((self.left,)),
+            right: f.call_mut((self.right,)),
         }
     }
 }
 
-impl Representable for PairFunctor {
+impl<'a, T> Representable<'a, PairFunctor, T> for Pair<T>
+where
+    T: 'a,
+{
     type Rep = bool;
 
-    type Index<'a, T> = PairIndex<T>
+    fn tabulate<F>(mut f: F) -> Self
     where
-        T: 'a;
-
-    fn tabulate<'a, F>(&mut self, mut f: F) -> Self::Map<'a, F::Output>
-    where
-        F: FnMut<(Self::Rep,)> + 'a,
+        F: FnMut<(Self::Rep,), Output = T> + 'a,
     {
-        Self::Map {
+        Self {
             left: f.call_mut((false,)),
             right: f.call_mut((true,)),
         }
     }
 
-    fn index<'a, T>(&mut self, value: Self::Map<'a, T>) -> Self::Index<'a, T>
-    where
-        T: 'a,
-    {
-        Self::Index { value }
+    fn index(self, rep: Self::Rep) -> T {
+        if rep {
+            self.right
+        } else {
+            self.left
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{Pair, PairFunctor};
+    use super::Pair;
     use crate::concepts::representable::Representable;
-    use fn_traits::FnOnce;
 
     #[test]
     fn test_pair_representable() {
         assert!(matches!(
-            PairFunctor.tabulate(|x| if x { 33 } else { 22 }),
+            Pair::tabulate(|x| if x { 33 } else { 22 }),
             Pair {
                 left: 22,
                 right: 33
             }
         ));
 
-        assert_eq!(
-            PairFunctor
-                .index(Pair { left: 2, right: 3 })
-                .call_once((false,)),
-            2,
-        );
-
-        assert_eq!(
-            PairFunctor
-                .index(Pair { left: 2, right: 3 })
-                .call_once((true,)),
-            3,
-        );
+        assert_eq!(Pair { left: 2, right: 3 }.index(false), 2);
+        assert_eq!(Pair { left: 2, right: 3 }.index(true), 3);
     }
 }
